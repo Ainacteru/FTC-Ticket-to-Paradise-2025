@@ -43,4 +43,18 @@ public class Input {
     {
         motors.MoveMotor(4,power);
     }
+
+    public void retract(boolean retractButton) {
+        if (retractButton) {
+            motors.MoveMotor(4, 100);
+
+        }
+    }
+    public void extend(boolean extendButton) {
+        if (extendButton) {
+            motors.MoveMotor(4, -100);
+
+        }
+    }
 }
+
