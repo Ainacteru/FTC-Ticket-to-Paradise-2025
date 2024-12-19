@@ -1,25 +1,30 @@
 package org.firstinspires.ftc.teamcode.Systems;
 
+import static org.firstinspires.ftc.robotcore.external.BlocksOpModeCompanion.telemetry;
+
+import com.acmerobotics.dashboard.FtcDashboard;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import java.util.Date;
+import org.firstinspires.ftc.robotcore.external.Telemetry;
 
 public class Input {
 
     Motors motors;
     Servos servos;
+    ElapsedTime elapsedTime;
 
-    public static double MAX_SPEED = 20.0;
-    public static int POS_0 = -460;
-    public static int POS_1 = -65;
-    public static int POS_3 = 580;
-
-    ElapsedTime elapsedTime = new ElapsedTime();
+    FtcDashboard dashboard;
+    Telemetry dashboardTelemetry;
 
     public Input(HardwareMap hardwareMap) {
         motors = new Motors(hardwareMap);
         servos = new Servos(hardwareMap);
+        elapsedTime = new ElapsedTime();
+
+//        dashboard = FtcDashboard.getInstance();
+//        dashboardTelemetry = dashboard.getTelemetry();
+        //setPoint = motors.getArmPosition();
     }
 
     public void move(double power) {
@@ -33,118 +38,108 @@ public class Input {
 
     public void strafe(double power) {
         motors.MoveMotor(Motors.Type.LeftFront, power); // left front
-        motors.MoveMotor(Motors.Type.RightFront, power); // right front
+        motors.MoveMotor(Motors.Type.RightFront, -power); // right front
 
         motors.MoveMotor(Motors.Type.LeftBack, -power); // left back
-        motors.MoveMotor(Motors.Type.LeftBack, -power); // right back
+        motors.MoveMotor(Motors.Type.RightBack, power); // right back
     }
 
     public void spin(double power) {
-        motors.MoveMotor(Motors.Type.RightFront, power); // left front
+        motors.MoveMotor(Motors.Type.LeftFront, power); // left front
         motors.MoveMotor(Motors.Type.LeftBack, power); // left back
 
         motors.MoveMotor(Motors.Type.RightFront, -power); // right front
         motors.MoveMotor(Motors.Type.RightBack, -power); // right back
     }
 
-    public void intake(double power) {
+    public void claw(boolean grabButton, boolean releaseButton) {
 
-        motors.MoveMotor(Motors.Type.Arm, power);
-    }
-
-    public void pickup(boolean button) {
-        if(button) {
-            servos.moveServo(0, 0.25);
+        if (releaseButton) {
+            servos.moveServo(Servos.Type.Claw, 270);
         }
-        else {
-            servos.moveServo(0, 0.7);
+        else if (grabButton) {
+            servos.moveServo(Servos.Type.Claw, 182.25);
         }
     }
 
-    public void armMove(double power) {
-        double speed;
-
-        if(power > MAX_SPEED) {
-            speed = MAX_SPEED;
-        } else {
-            speed = power;
-        }
-
-        motors.MoveMotor(Motors.Type.Arm, speed);
+    public void upArm(double power) {
+        motors.MoveMotor(Motors.Type.Pull, power);
     }
 
-    public void drop(boolean dropButton) {
-
-        if(!dropButton)
-            servos.moveServo(1,0.5);
-        else
-            servos.moveServo(1,0);
-    }
-
-    public void hang(boolean hangButton) {
-        if (hangButton) {
-            motors.MoveMotor(Motors.Type.Claw, 50);
-        }
-    }
-
-    public void stabalizeArm(double power) {
-
-        double armPos = motors.getArmPosition();
 
 
-//        if (armPos > -460 && armPos < -381) {
+
+
+    // PID variables
+    public static double kp = 2;  // Proportional gain
+    public static double ki = 0.45;  // Integral gain
+    public static double kd = 0.13;  // Derivative gain
+
+    public int setPoint;
+
+    double prevError = 0;  // Previous error, used for derivative
+    double integral = 0;   // Integral term
+
+
+//    public void ArmPidControl(double deltaTime, double input) {
 //
-//        } else if (armPos > -460 && armPos < -381) {
+//        setPoint += (int) (input * 100);    //multiply the game pad input by 100 so that there are no decimals which doesn't work in the setPoint then turn it into and int
 //
-//        } else if (armPos > -460 && armPos < -381) {
+//        // Time difference (dt)
+//        double dt = deltaTime;
 //
-//        } else if (armPos > -460 && armPos < -381) {
+//        double processValue = motors.getArmPosition(); // Finding the position of the motors
 //
+//        // Calculate error
+//        double errorValue = setPoint - processValue;
+//
+//
+//        // Prevent divide-by-zero errors
+//        if (dt == 0) {
+//            dt = 0.1;  // Default small value if no time has passed
 //        }
 //
+//        // Calculate PID terms
+//        double proportional = kp * errorValue;
 //
+//        integral += errorValue * dt;  // Integrate the error over time
+//        // Anti-windup: Limit the integral term to prevent it from growing too large
+//        integral = Math.max(Math.min(integral, 1000), -1000);
 //
+//        double derivative = (errorValue - prevError) / dt;
 //
-//        if (armPos < -65 && armPos > )
-
-
-        elapsedTime.reset();
-        /* back is about -460
-           neutral is -65
-           and front is 580
-
-         */
-
-
-        double time1 = elapsedTime.milliseconds();
-        double armPos1 = motors.getArmPosition();
-
-        double time2 ;
-        double armPos2;
-
-        //motors.MoveMotor(Motors.Type.Arm, power);
-
-        while (Math.abs(power) > 0.1) {
-
-            time2 = elapsedTime.milliseconds();
-            armPos2 = motors.getArmPosition();
-
-            double velocity = (armPos2 - armPos1) / (time2 - time1);
-
-            if (velocity > 20) {
-                power++;
-            } else {
-                power--;
-            }
-
-            time1 = time2;
-            armPos1 = armPos2;
-
-            motors.MoveMotor(Motors.Type.Arm, power);
-        }
-
-        //find slope / arm velocity then set power so it always is moving at the same speed
-
-
-    }
+//        // Compute the final PID output
+//        double output = proportional + ki * integral + kd * derivative;
+//
+//        // Apply the motor power
+//        output = Math.max(Math.min(output, 100), -100);  // Clamp output to motor range
+//
+//        motors.MoveMotor(Motors.Type.Arm, output);
+//
+//        // Store current error and time for next iteration
+//
+//        prevError = errorValue;
+//
+//        telemetry.addData("Set Point", setPoint);
+//        telemetry.addData("Process Value", processValue);
+//        telemetry.addData("Proportional Gain", kp);
+//        telemetry.addData("Integral Gain", ki);
+//        telemetry.addData("Derivative Gain", kd);
+//        telemetry.addData("Proportional", proportional);
+//        telemetry.addData("Integral", integral);
+//        telemetry.addData("Derivative", derivative);
+//        telemetry.addData("PID Output", output);
+//        telemetry.update();
+//
+//        dashboardTelemetry.addData("Set Point", setPoint);
+//        dashboardTelemetry.addData("Process Value", processValue);
+//        dashboardTelemetry.addData("Proportional Gain", kp);
+//        dashboardTelemetry.addData("Integral Gain", ki);
+//        dashboardTelemetry.addData("Derivative Gain", kd);
+//        dashboardTelemetry.addData("Proportional", proportional);
+//        dashboardTelemetry.addData("Integral", integral);
+//        dashboardTelemetry.addData("Derivative", derivative);
+//        dashboardTelemetry.addData("PID Output", output);
+//        dashboardTelemetry.update();
+//    }
 }

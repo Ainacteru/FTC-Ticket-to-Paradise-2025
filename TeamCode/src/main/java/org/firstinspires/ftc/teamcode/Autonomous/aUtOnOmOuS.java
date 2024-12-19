@@ -22,13 +22,13 @@ import org.firstinspires.ftc.vision.opencv.PredominantColorProcessor;
 
 import java.util.List;
 
-@Autonomous(name="Main")
+@Autonomous(name="Auto-Main")
 
 public class aUtOnOmOuS extends LinearOpMode {
 
-    Motors motor;
-    IMU imu;
-    Input input;
+    Motors motor = new Motors(hardwareMap);
+    IMU imu = new IMU(hardwareMap);
+    Input input = new Input(hardwareMap);
 
     private static final boolean USE_WEBCAM = true;
     private AprilTagProcessor aprilTag;
@@ -37,9 +37,7 @@ public class aUtOnOmOuS extends LinearOpMode {
 
     public void runOpMode() throws InterruptedException {
 
-        motor = new Motors(hardwareMap);
-        imu = new IMU(hardwareMap);
-        input = new Input(hardwareMap);
+
 
 
 
