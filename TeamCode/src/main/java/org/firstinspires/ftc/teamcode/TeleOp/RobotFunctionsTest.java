@@ -63,7 +63,7 @@ public class RobotFunctionsTest extends LinearOpMode {
             input.Spin(spin);
             input.Strafe(strafe);
 
-            camera.aprilDistance(gamepad2.a, 20, 0.5);
+            camera.aprilDistance(gamepad1.a, 20, 0.5);
 
 
             setPoint += (int) (gamepad2.left_stick_y * 10);    // Multiply the game pad input by a number so that we can tune the sensitivity then turn it into and int so the code can work
