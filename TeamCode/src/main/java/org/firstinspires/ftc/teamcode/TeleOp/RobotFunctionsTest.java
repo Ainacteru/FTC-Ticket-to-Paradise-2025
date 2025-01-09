@@ -59,9 +59,9 @@ public class RobotFunctionsTest extends LinearOpMode {
 
             double armRaise = gamepad2.right_stick_y * 100;
 
-            input.Move(move);
-            input.Spin(spin);
-            input.Strafe(strafe);
+            input.move(move);
+            input.spin(spin);
+            input.strafe(strafe);
 
             camera.aprilDistance(gamepad2.a, 20, 0.5);
 
